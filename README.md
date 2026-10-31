@@ -57,4 +57,4 @@ Cada release traz sua própria descrição e os arquivos de instalação corresp
 
 Este repositório é dedicado à **distribuição do aplicativo**; o desenvolvimento está no [CelGrade-LM](https://github.com/LuuizV/CelGrade-LM).
 
-**Autoria:** Luiz Jirardi.
+**Autoria:** Luiz Jirardi, Marcus Filho.
