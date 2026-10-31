@@ -1,0 +1,66 @@
+name: Publicar CelGrade LM 0.9.2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-celgrade-0.9.2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - name: Obter codigo-fonte da versao 0.9.2
+        uses: actions/checkout@v4
+        with:
+          repository: LuuizV/CelGrade-LM
+          ref: 32f7d1e3efc4e128c868b6c13a806920a1f2fd4e
+          persist-credentials: false
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Gerar instalador Windows
+        run: npm run package:win
+
+      - name: Conferir arquivos do atualizador
+        shell: pwsh
+        run: |
+          $files = @(
+            "release/CelGrade-LM-Setup-0.9.2.exe",
+            "release/CelGrade-LM-Setup-0.9.2.exe.blockmap",
+            "release/latest.yml"
+          )
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              throw "Arquivo obrigatorio ausente: $file"
+            }
+          }
+
+      - name: Publicar release estavel no repositorio de distribuicao
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: LuuizV/CelGrade-LM-Releases
+        run: |
+          gh release create v0.9.2 `
+            "release/CelGrade-LM-Setup-0.9.2.exe" `
+            "release/CelGrade-LM-Setup-0.9.2.exe.blockmap" `
+            "release/latest.yml" `
+            --repo "$env:GH_REPO" `
+            --title "CelGrade LM 0.9.2" `
+            --notes "Atualizacoes com download e progresso dentro do aplicativo, sem caixas externas; confirmacoes integradas, modulo separado no cadastro das salas, e exclusao compacta de uma ou todas alternativas do periodo. Backup preservado antes de instalar." `
+            --latest
