@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: LuuizV/CelGrade-LM
-          ref: 50d56e306a5e086ed589fec03acc068f41062b08
+          ref: b0ebdf24443cb5e0c038669355924f3d13a7cfab
           persist-credentials: false
 
       - name: Preparar Node.js
