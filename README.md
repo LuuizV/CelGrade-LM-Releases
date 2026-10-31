@@ -1,7 +1,7 @@
 # CelGrade LM — Downloads oficiais
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LuuizV/CelGrade-LM/main/web/brand-lockup.svg" alt="Identidade visual do CelGrade LM" width="360">
+  <img src="https://raw.githubusercontent.com/LuuizV/CelGrade-LM/main/web/brand-original.png" alt="Identidade visual do CelGrade LM" width="360">
 </p>
 
 <p align="center"><strong>Menos conflitos. Mais possibilidades.</strong></p>
