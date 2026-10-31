@@ -1,0 +1,66 @@
+name: Publicar CelGrade LM 0.9.6
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-celgrade-0.9.6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - name: Obter codigo-fonte da versao 0.9.6
+        uses: actions/checkout@v4
+        with:
+          repository: LuuizV/CelGrade-LM
+          ref: f06cf1872918c960c3064ebe8c773c3e6491bcd6
+          persist-credentials: false
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Gerar instalador Windows
+        run: npm run package:win
+
+      - name: Conferir arquivos do atualizador
+        shell: pwsh
+        run: |
+          $files = @(
+            "release/CelGrade-LM-Setup-0.9.6.exe",
+            "release/CelGrade-LM-Setup-0.9.6.exe.blockmap",
+            "release/latest.yml"
+          )
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              throw "Arquivo obrigatorio ausente: $file"
+            }
+          }
+
+      - name: Publicar release estavel no repositorio de distribuicao
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: LuuizV/CelGrade-LM-Releases
+        run: |
+          gh release create v0.9.6 `
+            "release/CelGrade-LM-Setup-0.9.6.exe" `
+            "release/CelGrade-LM-Setup-0.9.6.exe.blockmap" `
+            "release/latest.yml" `
+            --repo "$env:GH_REPO" `
+            --title "CelGrade LM 0.9.6" `
+            --notes "CelGrade LM 0.9.6: logotipo Jasmim na barra lateral, lema e icone na barra superior, nova pagina de periodos letivos, melhorias de transicao e controles, icones Windows e instalacao silenciosa com backup e reinicializacao." `
+            --latest
