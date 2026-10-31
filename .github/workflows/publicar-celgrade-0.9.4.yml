@@ -1,0 +1,66 @@
+name: Publicar CelGrade LM 0.9.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-celgrade-0.9.4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - name: Obter codigo-fonte da versao 0.9.4
+        uses: actions/checkout@v4
+        with:
+          repository: LuuizV/CelGrade-LM
+          ref: 50a52f7419e8f88cb861742edd8100c7839d1dcf
+          persist-credentials: false
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Gerar instalador Windows
+        run: npm run package:win
+
+      - name: Conferir arquivos do atualizador
+        shell: pwsh
+        run: |
+          $files = @(
+            "release/CelGrade-LM-Setup-0.9.4.exe",
+            "release/CelGrade-LM-Setup-0.9.4.exe.blockmap",
+            "release/latest.yml"
+          )
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              throw "Arquivo obrigatorio ausente: $file"
+            }
+          }
+
+      - name: Publicar release estavel no repositorio de distribuicao
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: LuuizV/CelGrade-LM-Releases
+        run: |
+          gh release create v0.9.4 `
+            "release/CelGrade-LM-Setup-0.9.4.exe" `
+            "release/CelGrade-LM-Setup-0.9.4.exe.blockmap" `
+            "release/latest.yml" `
+            --repo "$env:GH_REPO" `
+            --title "CelGrade LM 0.9.4" `
+            --notes "CelGrade LM 0.9.4: cartoes responsivos para Formandos, Ofertas e Professores, indicadores separados, graficos de barras e pizza das disciplinas mais requisitadas pelos formandos, detalhe das janelas e layout adaptado a resolucoes de tela." `
+            --latest
