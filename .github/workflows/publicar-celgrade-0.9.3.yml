@@ -1,0 +1,66 @@
+name: Publicar CelGrade LM 0.9.3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-celgrade-0.9.3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - name: Obter codigo-fonte da versao 0.9.3
+        uses: actions/checkout@v4
+        with:
+          repository: LuuizV/CelGrade-LM
+          ref: 674d7521bd7115862c41467112968865dbf2afde
+          persist-credentials: false
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Gerar instalador Windows
+        run: npm run package:win
+
+      - name: Conferir arquivos do atualizador
+        shell: pwsh
+        run: |
+          $files = @(
+            "release/CelGrade-LM-Setup-0.9.3.exe",
+            "release/CelGrade-LM-Setup-0.9.3.exe.blockmap",
+            "release/latest.yml"
+          )
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              throw "Arquivo obrigatorio ausente: $file"
+            }
+          }
+
+      - name: Publicar release estavel no repositorio de distribuicao
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: LuuizV/CelGrade-LM-Releases
+        run: |
+          gh release create v0.9.3 `
+            "release/CelGrade-LM-Setup-0.9.3.exe" `
+            "release/CelGrade-LM-Setup-0.9.3.exe.blockmap" `
+            "release/latest.yml" `
+            --repo "$env:GH_REPO" `
+            --title "CelGrade LM 0.9.3" `
+            --notes "Melhorias na interface: notificacoes flutuantes, cadastros organizados com etiquetas, modulo da sala obrigatorio, semestres nos choques de horarios, botoes alinhados, scrollbar corrigida, animacoes discretas e historico de atualizacoes melhorado." `
+            --latest
